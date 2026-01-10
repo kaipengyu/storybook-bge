@@ -1,0 +1,88 @@
+/* Email Component Styles for Storybook */
+
+.email-component {
+  font-family: Arial, Helvetica, sans-serif;
+  max-width: 650px;
+  margin: 0 auto;
+}
+
+.email-preview {
+  background-color: #eeeeee;
+  padding: 20px;
+  border-radius: 8px 8px 0 0;
+  overflow-x: auto;
+}
+
+.email-preview table {
+  margin: 0 auto;
+}
+
+.email-code {
+  background-color: #1e1e1e;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+}
+
+.email-code summary {
+  padding: 12px 16px;
+  cursor: pointer;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  background-color: #2d2d2d;
+  border: none;
+  user-select: none;
+}
+
+.email-code summary:hover {
+  background-color: #3d3d3d;
+}
+
+.email-code pre {
+  margin: 0;
+  padding: 16px;
+  overflow-x: auto;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.email-code code {
+  color: #d4d4d4;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre;
+}
+
+/* Copy button styles */
+.email-code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background-color: #2d2d2d;
+}
+
+.copy-button {
+  background-color: #6e06c1;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.copy-button:hover {
+  background-color: #5a05a0;
+}
+
+.copy-button:active {
+  background-color: #4a0490;
+}
+
+.copy-button.copied {
+  background-color: #28a745;
+}
