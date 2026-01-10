@@ -6,6 +6,7 @@ export { Content } from './Content';
 export { EmailButton } from './Button';
 export { Footer } from './Footer';
 export { EmailTemplate } from './EmailTemplate';
+export { PDFToEmail } from './PDFToEmail';
 
 // Import styles
 import './email-styles.css';
