@@ -23,6 +23,6 @@ export default {
 
 export const Default = {
   args: {
-    apiKey: 'AIzaSyBR2wGCyuCnycAyHIZkqCtN3vz-y8EW8WQ',
+    apiKey: '',
   },
 };
