@@ -134,19 +134,17 @@ The AI Email Scanner is a standalone tool that converts PDF email designs into p
 - Runs within the same server as a separate route
 
 ### Requirements
-Make sure you've set up your `VITE_GEMINI_API_KEY` in the `.env` file (see Environment Setup above).
+The PDFToEmail component requires a Gemini API key. Create a `.env` file:
+
+```bash
+VITE_GEMINI_API=your_gemini_api_key_here
+```
+
+Get your API key from: https://aistudio.google.com/app/apikey
 
 ## 🚀 Deployment
 
 ### Vercel Deployment
-
-This project is configured to deploy both apps to Vercel:
-
-**URLs after deployment:**
-- **Storybook**: `https://your-project.vercel.app` (root domain)
-- **AI Scanner**: `https://your-project.vercel.app/ai-scanner` (same domain, different route)
-
-**Setup:**
 
 1. Push your code to GitHub/GitLab/Bitbucket
 
@@ -157,22 +155,13 @@ This project is configured to deploy both apps to Vercel:
 
 3. **IMPORTANT**: Add environment variables in Vercel dashboard:
    - Go to Project Settings → Environment Variables
-   - Add: `VITE_GEMINI_API_KEY` = your API key
+   - Add: `VITE_GEMINI_API` = your API key
    - Apply to: Production, Preview, and Development
 
 4. Deploy:
    ```bash
    vercel --prod
    ```
-
-**Build Process:**
-The `npm run build` command:
-1. Builds Storybook → `storybook-static/`
-2. Builds Scanner → `storybook-static/ai-scanner/`
-3. Both are served from the same domain
-
-**Continuous Deployment:**
-Once connected to Vercel, every push to your main branch automatically deploys both apps.
 
 ## 📦 Included Addons
 
