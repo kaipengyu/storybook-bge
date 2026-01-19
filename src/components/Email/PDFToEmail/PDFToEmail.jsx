@@ -57,18 +57,20 @@ Based on the email design PDF, output a valid JSON object with this structure:
 }
 
 Only include sections that appear in the design. For colors, try to match the colors visible in the PDF design.
-For image URLs, use placeholder text like "[HERO_IMAGE_URL]" since you can't extract actual URLs.
+For image URLs, since you can't extract actual URLs from the PDF, use these placeholder URLs:
+- For header logo: "https://placehold.co/143x50/png?text=Logo"
+- For hero image: "https://placehold.co/600x300/png?text=Hero+Image"
+- For mobile hero image: Use same as hero image
 Extract all visible text content accurately from the PDF.
 `;
 
-export const PDFToEmail = ({ apiKey = '' }) => {
+export const PDFToEmail = ({ apiKey = import.meta.env.VITE_GEMINI_API_KEY || '' }) => {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [generatedHtml, setGeneratedHtml] = useState(null);
   const [componentData, setComponentData] = useState(null);
   const [copied, setCopied] = useState(false);
-  const [userApiKey, setUserApiKey] = useState(apiKey);
   const fileInputRef = useRef(null);
 
   const handleFileChange = (e) => {
@@ -123,7 +125,7 @@ export const PDFToEmail = ({ apiKey = '' }) => {
         <tr>
           <td align="left" height="100" style="width: 600px; max-width: 600px; height: 100px; color:#ffffff; font-size:16px; font-weight:bold; font-family: Arial, Helvetica, sans-serif; padding-left: 20px;" valign="middle" width="600">
             <a href="${data.header.linkUrl || '#'}" target="_blank" style="display:block;">
-              <img src="${data.header.logoUrl || '[LOGO_URL]'}" alt="${data.header.logoAlt || 'Company Logo'}" border="0" width="143" height="auto" style="border-width:0;width:143px;height:auto;display:block;"/>
+              <img src="${data.header.logoUrl || 'https://placehold.co/143x50/png?text=Logo'}" alt="${data.header.logoAlt || 'Company Logo'}" border="0" width="143" height="auto" style="border-width:0;width:143px;height:auto;display:block;"/>
             </a>
           </td>
         </tr>
@@ -137,7 +139,7 @@ export const PDFToEmail = ({ apiKey = '' }) => {
 <tr>
   <td align="center" class="disappear">
     <a href="${data.heroImage.linkUrl || '#'}" target="_blank" style="display:block;">
-      <img src="${data.heroImage.imageUrl || '[HERO_IMAGE_URL]'}" alt="${data.heroImage.altText || 'Hero image'}" width="600" class="fluid-image" style="border-width:0;width:600px;height:auto;display:block;" border="0"/>
+      <img src="${data.heroImage.imageUrl || 'https://placehold.co/600x300/png?text=Hero+Image'}" alt="${data.heroImage.altText || 'Hero image'}" width="600" class="fluid-image" style="border-width:0;width:600px;height:auto;display:block;" border="0"/>
     </a>
   </td>
 </tr>
@@ -215,7 +217,7 @@ export const PDFToEmail = ({ apiKey = '' }) => {
                   <table cellpadding="0" cellspacing="0" border="0" align="left">
                     <tr>
                       <td align="left">
-                        <img src="[FOOTER_LOGO_URL]" alt="${data.footer.companyName || 'Company'} logo" border="0" width="143" height="auto" style="border-width:0;width:143px;height:auto;display:block;"/>
+                        <img src="https://placehold.co/143x50/png?text=Logo" alt="${data.footer.companyName || 'Company'} logo" border="0" width="143" height="auto" style="border-width:0;width:143px;height:auto;display:block;"/>
                       </td>
                     </tr>
                   </table>
@@ -307,8 +309,8 @@ ${footerHtml}
       return;
     }
 
-    if (!userApiKey) {
-      setError('Please enter your Google Gemini API key');
+    if (!apiKey) {
+      setError('Gemini API key is not configured. Please add VITE_GEMINI_API_KEY to your .env file');
       return;
     }
 
@@ -327,7 +329,7 @@ ${footerHtml}
       });
 
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${userApiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
         {
           method: 'POST',
           headers: {
@@ -415,6 +417,171 @@ ${footerHtml}
     URL.revokeObjectURL(url);
   };
 
+  const updateComponentData = (section, field, value) => {
+    const newData = { ...componentData };
+    
+    if (section === 'content' && Array.isArray(newData.content)) {
+      // Handle array content
+      const [contentSection, index, contentField] = field.split('.');
+      if (!newData.content[index]) newData.content[index] = {};
+      newData.content[index][contentField] = value;
+    } else {
+      // Handle single object sections
+      if (!newData[section]) newData[section] = {};
+      newData[section][field] = value;
+    }
+    
+    setComponentData(newData);
+    const html = generateEmailHtml(newData);
+    setGeneratedHtml(html);
+  };
+
+  const renderEditableField = (section, fieldName, value, label, type = 'text') => {
+    const fieldId = `${section}-${fieldName}`;
+    
+    return (
+      <tr key={fieldId}>
+        <td className="pte-table-label">{label}</td>
+        <td className="pte-table-control">
+          {type === 'textarea' ? (
+            <textarea
+              value={value || ''}
+              onChange={(e) => updateComponentData(section, fieldName, e.target.value)}
+              rows={3}
+              className="pte-input pte-textarea"
+            />
+          ) : type === 'color' ? (
+            <div className="pte-color-input-wrapper">
+              <input
+                type="color"
+                value={value || '#000000'}
+                onChange={(e) => updateComponentData(section, fieldName, e.target.value)}
+                className="pte-color-picker"
+              />
+              <input
+                type="text"
+                value={value || ''}
+                onChange={(e) => updateComponentData(section, fieldName, e.target.value)}
+                placeholder="#000000"
+                className="pte-input pte-color-text"
+              />
+            </div>
+          ) : (
+            <input
+              type={type}
+              value={value || ''}
+              onChange={(e) => updateComponentData(section, fieldName, e.target.value)}
+              className="pte-input"
+            />
+          )}
+        </td>
+      </tr>
+    );
+  };
+
+  const renderComponentDataEditor = () => {
+    if (!componentData) return null;
+
+    return (
+      <div className="pte-editor">
+        <h3>Edit Email Components</h3>
+        <p className="pte-editor-description">
+          Modify the values below to customize your email template. Changes update the preview in real-time.
+        </p>
+
+        {componentData.header && (
+          <details className="pte-editor-section" open>
+            <summary className="pte-editor-section-title">📧 Header</summary>
+            <table className="pte-editor-table">
+              <tbody>
+                {renderEditableField('header', 'promotionalText', componentData.header.promotionalText, 'Promotional Text', 'textarea')}
+                {renderEditableField('header', 'logoUrl', componentData.header.logoUrl, 'Logo URL', 'url')}
+                {renderEditableField('header', 'logoAlt', componentData.header.logoAlt, 'Logo Alt Text')}
+                {renderEditableField('header', 'backgroundColor', componentData.header.backgroundColor, 'Background Color', 'color')}
+                {renderEditableField('header', 'linkUrl', componentData.header.linkUrl, 'Logo Link URL', 'url')}
+              </tbody>
+            </table>
+          </details>
+        )}
+
+        {componentData.heroImage && (
+          <details className="pte-editor-section" open>
+            <summary className="pte-editor-section-title">🖼️ Hero Image</summary>
+            <table className="pte-editor-table">
+              <tbody>
+                {renderEditableField('heroImage', 'imageUrl', componentData.heroImage.imageUrl, 'Image URL', 'url')}
+                {renderEditableField('heroImage', 'mobileImageUrl', componentData.heroImage.mobileImageUrl, 'Mobile Image URL', 'url')}
+                {renderEditableField('heroImage', 'altText', componentData.heroImage.altText, 'Alt Text')}
+                {renderEditableField('heroImage', 'linkUrl', componentData.heroImage.linkUrl, 'Link URL', 'url')}
+              </tbody>
+            </table>
+          </details>
+        )}
+
+        {componentData.title && (
+          <details className="pte-editor-section" open>
+            <summary className="pte-editor-section-title">📝 Title</summary>
+            <table className="pte-editor-table">
+              <tbody>
+                {renderEditableField('title', 'headline', componentData.title.headline, 'Headline', 'textarea')}
+                {renderEditableField('title', 'headlineColor', componentData.title.headlineColor, 'Headline Color', 'color')}
+              </tbody>
+            </table>
+          </details>
+        )}
+
+        {componentData.content && (
+          <details className="pte-editor-section" open>
+            <summary className="pte-editor-section-title">📄 Content</summary>
+            <table className="pte-editor-table">
+              <tbody>
+                {(Array.isArray(componentData.content) ? componentData.content : [componentData.content]).map((content, index) => (
+                  <React.Fragment key={`content-${index}`}>
+                    {Array.isArray(componentData.content) && componentData.content.length > 1 && (
+                      <tr>
+                        <td colSpan={2} className="pte-table-subtitle">Paragraph {index + 1}</td>
+                      </tr>
+                    )}
+                    {renderEditableField('content', `content.${index}.text`, content.text, 'Text', 'textarea')}
+                    {renderEditableField('content', `content.${index}.textColor`, content.textColor, 'Text Color', 'color')}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </details>
+        )}
+
+        {componentData.button && (
+          <details className="pte-editor-section" open>
+            <summary className="pte-editor-section-title">🔘 Button</summary>
+            <table className="pte-editor-table">
+              <tbody>
+                {renderEditableField('button', 'text', componentData.button.text, 'Button Text')}
+                {renderEditableField('button', 'linkUrl', componentData.button.linkUrl, 'Link URL', 'url')}
+                {renderEditableField('button', 'backgroundColor', componentData.button.backgroundColor, 'Background Color', 'color')}
+                {renderEditableField('button', 'textColor', componentData.button.textColor, 'Text Color', 'color')}
+              </tbody>
+            </table>
+          </details>
+        )}
+
+        {componentData.footer && (
+          <details className="pte-editor-section" open>
+            <summary className="pte-editor-section-title">🏢 Footer</summary>
+            <table className="pte-editor-table">
+              <tbody>
+                {renderEditableField('footer', 'companyName', componentData.footer.companyName, 'Company Name')}
+                {renderEditableField('footer', 'companyAddress', componentData.footer.companyAddress, 'Company Address')}
+                {renderEditableField('footer', 'copyrightYear', componentData.footer.copyrightYear, 'Copyright Year')}
+                {renderEditableField('footer', 'disclaimerText', componentData.footer.disclaimerText, 'Disclaimer Text', 'textarea')}
+              </tbody>
+            </table>
+          </details>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="pdf-to-email-storybook">
       <header className="pte-header">
@@ -424,19 +591,6 @@ ${footerHtml}
 
       <div className="pte-main">
         <div className="pte-upload-section">
-          {/* API Key Input */}
-          <div className="pte-api-key-section">
-            <label htmlFor="apiKey">Google Gemini API Key:</label>
-            <input
-              id="apiKey"
-              type="password"
-              value={userApiKey}
-              onChange={(e) => setUserApiKey(e.target.value)}
-              placeholder="Enter your Gemini API key"
-              className="pte-api-input"
-            />
-          </div>
-
           <div
             className={`pte-drop-zone ${file ? 'has-file' : ''}`}
             onDrop={handleDrop}
@@ -470,7 +624,7 @@ ${footerHtml}
           <button
             className="pte-generate-btn"
             onClick={analyzeWithGemini}
-            disabled={!file || loading || !userApiKey}
+            disabled={!file || loading || !apiKey}
           >
             {loading ? (
               <>
@@ -513,8 +667,15 @@ ${footerHtml}
             </div>
 
             {componentData && (
+              <details className="pte-details pte-editor-accordion" open>
+                <summary>Edit Email Components</summary>
+                {renderComponentDataEditor()}
+              </details>
+            )}
+
+            {componentData && (
               <details className="pte-details">
-                <summary>View Extracted Component Data (JSON)</summary>
+                <summary>View Raw JSON Data</summary>
                 <pre>{JSON.stringify(componentData, null, 2)}</pre>
               </details>
             )}

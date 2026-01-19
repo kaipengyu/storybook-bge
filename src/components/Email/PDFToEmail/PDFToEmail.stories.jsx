@@ -1,28 +1,18 @@
 import { PDFToEmail } from './PDFToEmail';
 
 export default {
-  title: 'Email/AI Email Generator',
+  title: 'Email/PDFToEmail',
   component: PDFToEmail,
   parameters: {
     layout: 'fullscreen',
-    controls: { hideNoControlsWarning: true, disable: true },
-    actions: { disable: true },
-    interactions: { disable: true },
-    previewTabs: {
-      'storybook/docs/panel': { hidden: true },
+    docs: {
+      description: {
+        component: 'AI-powered email template generator that transforms PDF designs into HTML email templates using Google Gemini.',
+      },
     },
-    viewMode: 'story',
-    options: {
-      showPanel: false,
-    },
-  },
-  argTypes: {
-    apiKey: { table: { disable: true } },
   },
 };
 
 export const Default = {
-  args: {
-    apiKey: '',
-  },
+  args: {},
 };

@@ -1,6 +1,6 @@
-# Storybook Component Library
+# Storybook Email Component Library
 
-A modern React component library built with [Storybook](https://storybook.js.org/) and [Vite](https://vitejs.dev/).
+A modern React email component library built with [Storybook](https://storybook.js.org/) and [Vite](https://vitejs.dev/).
 
 ## 🚀 Getting Started
 
@@ -17,35 +17,29 @@ npm install
 
 ### Development
 
-**Start Storybook** (recommended for component development):
-
-```bash
-npm run storybook
-```
-
-Opens Storybook at [http://localhost:6006](http://localhost:6006)
-
-**Start the app**:
-
 ```bash
 npm run dev
 ```
 
+This will start Storybook at [http://localhost:6006](http://localhost:6006)
+
 ## 📁 Project Structure
 
 ```
-├── .storybook/
-│   ├── main.js           # Storybook configuration
-│   └── preview.js        # Global decorators & parameters
+├── .storybook/          # Storybook configuration
+│   ├── main.js
+│   └── preview.js
 ├── src/
-│   ├── components/       # UI components
-│   │   ├── Button.jsx
-│   │   ├── Button.css
-│   │   └── Button.stories.jsx
-│   ├── App.jsx
-│   ├── main.jsx
-│   └── index.css
-├── index.html
+│   ├── components/
+│   │   └── Email/      # Email components
+│   │       ├── Header/
+│   │       ├── HeroImage/
+│   │       ├── Title/
+│   │       ├── Content/
+│   │       ├── Button/
+│   │       ├── Footer/
+│   │       └── EmailTemplate/
+│   └── stories/        # Example stories
 ├── vite.config.js
 └── package.json
 ```
@@ -119,11 +113,66 @@ export const Default = {
 
 | Command | Description |
 |---------|-------------|
-| `npm run storybook` | Start Storybook dev server on port 6006 |
-| `npm run build-storybook` | Build static Storybook for deployment |
-| `npm run dev` | Start Vite dev server |
-| `npm run build` | Build app for production |
+| `npm run dev` | Start Storybook dev server on port 6006 (includes AI Scanner at /ai-scanner) |
+| `npm run build` | Build Storybook for production |
 | `npm run preview` | Preview production build |
+
+## 🪄 AI Email Scanner
+
+The AI Email Scanner is a standalone tool that converts PDF email designs into production-ready HTML code using AI.
+
+### Features
+- Upload email design PDFs
+- AI-powered component detection using Google Gemini 2.0
+- Real-time preview
+- Editable component properties
+- Export HTML code
+
+### Access
+- **Development**: [http://localhost:6006/ai-scanner](http://localhost:6006/ai-scanner) (after `npm run dev`)
+- **Production**: `https://yourdomain.com/ai-scanner` (after deploying to Vercel)
+- Runs within the same server as a separate route
+
+### Requirements
+Make sure you've set up your `VITE_GEMINI_API_KEY` in the `.env` file (see Environment Setup above).
+
+## 🚀 Deployment
+
+### Vercel Deployment
+
+This project is configured to deploy both apps to Vercel:
+
+**URLs after deployment:**
+- **Storybook**: `https://your-project.vercel.app` (root domain)
+- **AI Scanner**: `https://your-project.vercel.app/ai-scanner` (same domain, different route)
+
+**Setup:**
+
+1. Push your code to GitHub/GitLab/Bitbucket
+
+2. Connect to Vercel:
+   ```bash
+   vercel
+   ```
+
+3. **IMPORTANT**: Add environment variables in Vercel dashboard:
+   - Go to Project Settings → Environment Variables
+   - Add: `VITE_GEMINI_API_KEY` = your API key
+   - Apply to: Production, Preview, and Development
+
+4. Deploy:
+   ```bash
+   vercel --prod
+   ```
+
+**Build Process:**
+The `npm run build` command:
+1. Builds Storybook → `storybook-static/`
+2. Builds Scanner → `storybook-static/ai-scanner/`
+3. Both are served from the same domain
+
+**Continuous Deployment:**
+Once connected to Vercel, every push to your main branch automatically deploys both apps.
 
 ## 📦 Included Addons
 
